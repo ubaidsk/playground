@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: otel-prometheus
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: otel-prometheus
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:4318
+          grpc:
+            endpoint: 0.0.0.0:4317
+
+    processors:
+      batch:
+
+    exporters:
+      prometheus:
+        endpoint: 0.0.0.0:9090
+
+    extensions:
+      health_check:
+      pprof:
+      zpages:
+
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [prometheus]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector-prometheus
+  namespace: otel-prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector-prometheus
+  template:
+    metadata:
+      labels:
+        app: otel-collector-prometheus
+    spec:
+      containers:
+      - name: otel-collector-prometheus
+        image: otel/opentelemetry-collector:0.88.0
+        args:
+        - "--config=/conf/config.yaml"
+        ports:
+        - containerPort: 4318 # OTLP HTTP
+        - containerPort: 4317 # OTLP gRPC
+        - containerPort: 9090 # Prometheus endpoint
+        volumeMounts:
+        - name: otel-collector-config-vol
+          mountPath: /conf
+      volumes:
+      - name: otel-collector-config-vol
+        configMap:
+          name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector-prometheus
+  namespace: otel-prometheus
+spec:
+  type: ClusterIP
+  selector:
+    app: otel-collector-prometheus
+  ports:
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: prometheus
+    port: 9090
+    targetPort: 9090
+    protocol: TCP

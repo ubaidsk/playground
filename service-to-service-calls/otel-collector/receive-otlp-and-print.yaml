@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: otel-printer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: otel-printer
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:4318
+          grpc:
+            endpoint: 0.0.0.0:4317
+
+    exporters:
+      debug:
+      prometheus:
+        endpoint: 0.0.0.0:9090
+
+    processors:
+      batch:
+
+    extensions:
+      health_check:
+      pprof:
+      zpages:
+
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug, prometheus]
+      telemetry:
+        metrics:
+          level: detailed
+          address: 0.0.0.0:8888
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector-printer
+  namespace: otel-printer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector-printer
+  template:
+    metadata:
+      labels:
+        app: otel-collector-printer
+    spec:
+      containers:
+      - name: otel-collector-printer
+        image: otel/opentelemetry-collector:0.88.0
+        args:
+        - "--config=/conf/config.yaml"
+        ports:
+        - containerPort: 4318 # OTLP HTTP
+        - containerPort: 4317 # OTLP gRPC
+        - containerPort: 9090 # Prometheus endpoint
+        - containerPort: 8888 # Telemetry metrics
+        volumeMounts:
+        - name: otel-collector-config-vol
+          mountPath: /conf
+      volumes:
+      - name: otel-collector-config-vol
+        configMap:
+          name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector-printer
+  namespace: otel-printer
+spec:
+  type: ClusterIP
+  selector:
+    app: otel-collector-printer
+  ports:
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: prometheus
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  - name: telemetry
+    port: 8888
+    targetPort: 8888
+    protocol: TCP

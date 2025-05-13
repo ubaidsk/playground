@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-pod
+  namespace: debug
+spec:
+  containers:
+  - name: debug-container
+    image: ubaidsh/ubuntu-debug-image:latest
+    command: ["sleep"]
+    args: ["3h"]

@@ -1,0 +1,88 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "my.service"
+            }
+          }
+        ]
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "my.library",
+            "version": "1.0.0",
+            "attributes": [
+              {
+                "key": "my.scope.attribute",
+                "value": {
+                  "stringValue": "some scope attribute"
+                }
+              }
+            ]
+          },
+          "metrics": [
+            {
+              "name": "my.counter",
+              "unit": "1",
+              "description": "I am a Counter",
+              "sum": {
+                "aggregationTemporality": 1,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "asDouble": 7,
+                    "attributes": [
+                      {
+                        "key": "my.counter.attr",
+                        "value": {
+                          "stringValue": "some value3"
+                        }
+                      },
+                      {
+                        "key": "my.new-metric",
+                        "value": {
+                          "stringValue": "my new value"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "my.gauge",
+              "unit": "1",
+              "description": "I am a Gauge",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "asDouble": 13,
+                    "attributes": [
+                      {
+                        "key": "my.gauge.attr",
+                        "value": {
+                          "stringValue": "some5 value"
+                        }
+                      },
+                      {
+                        "key": "my.new_label",
+                        "value": {
+                          "stringValue": "some new value abc"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
