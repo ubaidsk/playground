@@ -1,0 +1,10 @@
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.34-latest
+    command:
+      - "--log-level info"
+      - "--config-path /etc/envoy/envoy.yaml"
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./envoy/simplest.yaml:/etc/envoy/envoy.yaml
