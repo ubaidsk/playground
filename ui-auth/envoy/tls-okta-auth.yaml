@@ -1,0 +1,111 @@
+static_resources:
+  listeners:
+  - name: envoy_listener
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 5050
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          http_filters:
+          - name: envoy.filters.http.oauth2
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
+              config:
+                token_endpoint:
+                  cluster: oktaauth
+                  uri: "https://dev-53468963.okta.com/oauth2/default/v1/token"
+                  timeout: 15s
+                authorization_endpoint: "https://dev-53468963.okta.com/oauth2/default/v1/authorize"
+                redirect_uri: "%REQ(x-forwarded-proto)%://%REQ(:authority)%/callback"
+                forward_bearer_token: true
+                auth_scopes:
+                - openid
+                - profile
+                redirect_path_matcher:
+                  path:
+                    exact: /callback
+                signout_path:
+                  path:
+                    exact: /signout
+                pass_through_matcher:
+                  name: public
+                  prefix_match: /public/
+                credentials:
+                  client_id: 0oaoszi6ecmK84YRS5d7
+                  token_secret:
+                    name: token
+                  hmac_secret:
+                    name: hmac
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+          stat_prefix: http_traffic
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: backend
+              domains:
+              - "*"
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: ui-service
+                  timeout: 1s
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - certificate_chain:
+                filename: "/etc/certs/server.crt"
+              private_key:
+                filename: "/etc/certs/server.key"
+  clusters:
+  - name: ui-service
+    connect_timeout: 0.25s
+    type: LOGICAL_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: ui-service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: ui-service
+                port_value: 5000
+
+  - name: oktaauth
+    connect_timeout: 5s
+    type: LOGICAL_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: oktaauth
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: "dev-53468963.okta.com"
+                port_value: 443
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        sni: "dev-53468963.okta.com"
+
+  secrets:
+  - name: token
+    generic_secret:
+      secret:
+        inline_string: "-Zuvuc9z3pV-8plk1L_dzItvoMJOYCmlvGCEB2l76S13TZ2FEPqvvQUIQdspDJtc"
+  - name: hmac
+    generic_secret:
+      secret:
+        inline_string: "secret"

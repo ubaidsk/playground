@@ -2,33 +2,33 @@ services:
   envoy:
     image: envoyproxy/envoy:v1.34-latest
     command:
-      - "--log-level info"
+      - "--log-level debug"
       - "--config-path /etc/envoy/envoy.yaml"
     ports:
       - "5050:5050"
     volumes:
-      - ./envoy/keycloak-auth.yaml:/etc/envoy/envoy.yaml
+      - ./envoy/tls-okta-auth.yaml:/etc/envoy/envoy.yaml
       - ./certs/server.crt:/etc/certs/server.crt
       - ./certs/server.key:/etc/certs/server.key
     depends_on:
       - ui-service
-      - keycloak
+      # - keycloak
   ui-service:
     image: ubaids/my-ui-service:latest
     ports:
       - "5000:5000"
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.2.4
-    container_name: keycloak
-    environment:
-      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-    ports:
-      - "8080:8080"
-    volumes:
-      - keycloak-data:/opt/keycloak/data/
-    command:
-      - start-dev
+#   keycloak:
+#     image: quay.io/keycloak/keycloak:26.2.4
+#     container_name: keycloak
+#     environment:
+#       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+#       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+#     ports:
+#       - "8080:8080"
+#     volumes:
+#       - keycloak-data:/opt/keycloak/data/
+#     command:
+#       - start-dev
 
-volumes:
-  keycloak-data:
+# volumes:
+#   keycloak-data:
