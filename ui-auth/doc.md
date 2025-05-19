@@ -11,6 +11,12 @@ This command generates a new RSA key and a self-signed certificate with a validi
 
 Got the approach from [here](https://stackoverflow.com/questions/10175812/how-can-i-generate-a-self-signed-ssl-certificate-using-openssl/41366949#41366949)
 
+Later, had the `chmod` the `server.key` permissions so that it can be read by envoy running inside a docker container. This is because the default permissions for the key file are too restrictive for the container to read it.
+
+```bash
+chmod 644 server.key
+```
+
 1. Generate the server.key file using
 
 ```bash

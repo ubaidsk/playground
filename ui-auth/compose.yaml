@@ -7,7 +7,9 @@ services:
     ports:
       - "5050:5050"
     volumes:
-      - ./envoy/route-to-service.yaml:/etc/envoy/envoy.yaml
+      - ./envoy/tls-route-to-service.yaml:/etc/envoy/envoy.yaml
+      - ./certs/server.crt:/etc/certs/server.crt
+      - ./certs/server.key:/etc/certs/server.key
     depends_on:
       - ui-service
   ui-service:
