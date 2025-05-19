@@ -19,8 +19,8 @@ static_resources:
                   cluster: keycloak
                   uri: http://keycloak:8080/realms/NanosApps/protocol/openid-connect/token
                   timeout: 3s
-                authorization_endpoint: http://127.0.0.1:8080/realms/NanosApps/protocol/openid-connect/auth
-                redirect_uri: "http://127.0.0.1:5050/callback"
+                authorization_endpoint: http://localhost:8080/realms/NanosApps/protocol/openid-connect/auth
+                redirect_uri: "%REQ(x-forwarded-proto)%://%REQ(:authority)%/callback"
                 auth_scopes:
                 - openid
                 redirect_path_matcher:
