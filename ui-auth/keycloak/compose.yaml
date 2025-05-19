@@ -3,12 +3,13 @@ services:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: keycloak
     environment:
-      - KEYCLOAK_IMPORT=/opt/jboss/keycloak/imports/realm-export.json
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
     ports:
       - "8080:8080"
-    command: start-dev
+    command:
+      - start-dev
+      # - --import-realm
     restart: unless-stopped
-    volumes:
-      - ./realm-export.json:/opt/jboss/keycloak/imports/realm-export.json
+    # volumes:
+    #   - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
