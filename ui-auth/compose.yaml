@@ -7,4 +7,10 @@ services:
     ports:
       - "5050:5050"
     volumes:
-      - ./envoy/simplest.yaml:/etc/envoy/envoy.yaml
+      - ./envoy/route-to-service.yaml:/etc/envoy/envoy.yaml
+    depends_on:
+      - ui-service
+  ui-service:
+    image: ubaids/my-ui-service:latest
+    ports:
+      - "5000:5000"
