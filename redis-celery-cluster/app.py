@@ -30,17 +30,18 @@ def index():
     return "Welcome to the Celery Redis Cluster Example!"
 
 @celery.task
-def send_email(recipient):
+def send_email(recipient, process_time=5):
     # Simulate email sending
     import time
-    time.sleep(5)
-    return f'Email sent to {recipient}'
+    time.sleep(process_time)
+    return f'Email sent to {recipient} after {process_time} seconds'
 
 @app.route('/send-email', methods=['POST'])
 def send_email_route():
     data = request.get_json()
     recipient = data['recipient']
-    task = send_email.delay(recipient)
+    process_time = data.get('process_time', 5)  # default to 5 seconds if not provided
+    task = send_email.delay(recipient, process_time)
     return jsonify({ 'task_id': task.id }), 202
 
 @app.route('/status/<task_id>')
