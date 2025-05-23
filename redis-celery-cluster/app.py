@@ -3,18 +3,16 @@ from celery import Celery
 import click
 
 app = Flask(__name__)
+celery = Celery('tasks')  # Create initial instance
 
-def create_app(redis_url):
-    # Configure Celery
+def configure_app(redis_url):
+    """Configure both Flask and Celery apps with the given Redis URL"""
     app.config['CELERY_BROKER_URL'] = redis_url
-    
-    celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-    celery.conf.update(app.config)
     celery.conf.update(
+        broker_url=redis_url,
         worker_send_task_events=True,
         task_send_sent_event=True,
     )
-    return celery
 
 @app.route('/')
 def index():
@@ -50,8 +48,7 @@ def task_status(task_id):
 @click.option('--port', default=5000, help='Port to run the Flask application')
 def main(redis_url, port):
     """Run the Flask application with the specified Redis URL and port."""
-    global celery
-    celery = create_app(redis_url)
+    configure_app(redis_url)
     app.run(debug=False, host='0.0.0.0', port=port)
 
 if __name__ == '__main__':
