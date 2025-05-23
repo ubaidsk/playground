@@ -1,18 +1,26 @@
 from flask import Flask, request, jsonify
 from celery import Celery
+import os
 import click
 
-app = Flask(__name__)
-celery = Celery('tasks')  # Create initial instance
+def get_redis_url():
+    redis_url = os.environ.get('REDIS_URL')
+    if not redis_url:
+        raise ValueError("REDIS_URL environment variable must be set")
+    return redis_url
 
-def configure_app(redis_url):
-    """Configure both Flask and Celery apps with the given Redis URL"""
-    app.config['CELERY_BROKER_URL'] = redis_url
-    celery.conf.update(
-        broker_url=redis_url,
-        worker_send_task_events=True,
-        task_send_sent_event=True,
-    )
+# Get Redis URL first
+redis_url = get_redis_url()
+
+# Initialize Flask and Celery with proper broker URL
+app = Flask(__name__)
+app.config['CELERY_BROKER_URL'] = redis_url
+
+celery = Celery(app.name, broker=redis_url)
+celery.conf.update(
+    worker_send_task_events=True,
+    task_send_sent_event=True
+)
 
 @app.route('/')
 def index():
@@ -44,11 +52,9 @@ def task_status(task_id):
     return jsonify(response)
 
 @click.command()
-@click.option('--redis-url', default='redis://localhost:6379', help='Redis URL for Celery broker')
 @click.option('--port', default=5000, help='Port to run the Flask application')
-def main(redis_url, port):
-    """Run the Flask application with the specified Redis URL and port."""
-    configure_app(redis_url)
+def main(port):
+    """Run the Flask application on the specified port."""
     app.run(debug=False, host='0.0.0.0', port=port)
 
 if __name__ == '__main__':

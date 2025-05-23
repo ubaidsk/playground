@@ -11,7 +11,6 @@ COPY docker-entrypoint.sh .
 RUN chmod +x docker-entrypoint.sh
 
 ENV SERVICE_TYPE=web
-ENV REDIS_URL=redis://localhost:6379
-ENV PORT=5000
+# REDIS_URL must be provided when running the container
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
