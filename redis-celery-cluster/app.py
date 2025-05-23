@@ -15,8 +15,11 @@ redis_url = get_redis_url()
 # Initialize Flask and Celery with proper broker URL
 app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = redis_url
+app.config['CELERY_RESULT_BACKEND'] = redis_url
 
-celery = Celery(app.name, broker=redis_url)
+celery = Celery(app.name,
+                broker=redis_url,
+                backend=redis_url)
 celery.conf.update(
     worker_send_task_events=True,
     task_send_sent_event=True
