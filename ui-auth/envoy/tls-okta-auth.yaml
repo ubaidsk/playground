@@ -56,7 +56,6 @@ static_resources:
                 forward_bearer_token: true
                 auth_scopes:
                 - openid
-                - profile
                 redirect_path_matcher:
                   path:
                     exact: /callback
